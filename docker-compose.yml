@@ -1,0 +1,77 @@
+version: "3"
+services:
+
+  outline:
+    container_name: outline
+    image: outlinewiki/outline
+    env_file: ./docker.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+      - storage
+
+  redis:
+    container_name: redis
+    image: redis
+    env_file: ./docker.env
+#    ports:
+#      - "6379:6379"
+    volumes:
+      - ./redis.conf:/redis.conf
+    command: ["redis-server", "/redis.conf"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+
+  postgres:
+    container_name: postgres
+    image: postgres
+    env_file: ./docker.env
+#    ports:
+#      - "5432:5432"
+    volumes:
+      - database-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready -U nytradocs"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+
+  storage:
+    container_name: storage
+    image: minio/minio
+    env_file: ./docker.env
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    entrypoint: sh
+    command: -c 'minio server /data --console-address ":9001"'
+    deploy:
+      restart_policy:
+        condition: on-failure
+    volumes:
+      - storage-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+
+
+  cloudflared:
+    container_name: cloudflared
+    image: erisamoe/cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN= ## Create a new tunnel token at https://dash.teams.cloudflare.com/ (Access, Tunnels)
+ 
+volumes:
+  storage-data:
+  database-data:
