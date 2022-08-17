@@ -1,6 +1,11 @@
 # outline-minio-docker-compose
 A guide on how to use outline wiki in combination with cloudflared &amp; minio as S3 storage
 
+Advantages of using cloudflared:
+- Free SSL Certificate
+- No need to use a reverse proxy as cloudflare handles everything
+- Secure, as you don't need to expose more ports as needed. 
+
 ## Requirements
 - Create a Cloudlare Tunnel at https://dash.teams.cloudflare.com/ to obtain the tunnel token and think about 2 domain names 
   - One for the access to outline wiki and one for the minio storage 
@@ -43,3 +48,12 @@ Create the docker.env file in the same directory ( You can download it via: ```w
   - Click Save hostname
 - In your Tunnel dashboard you should see your tunnel status as ACTIVE 
 - You can now access your own outline instance via: https://outline.mydomain.com
+
+## Rework
+- After finishing the installation you can close the ports of minio as you don`t need to access it anymore. 
+  - To do that edit the docker-compose.yml file and either remove the ports section or uncomment it.
+  ```   
+  #ports:
+   # - "9000:9000"
+   # - "9001:9001"
+ - To further secure your outline instance you can use cloudflare application access tool. 
